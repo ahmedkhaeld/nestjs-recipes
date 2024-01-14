@@ -1,6 +1,6 @@
 import { IsNumber, IsOptional, IsPositive } from "class-validator";
 import { Type } from "class-transformer";
-import { ToBoolean } from "../transformer/Toboolean.transformer";
+import { ToBoolean } from "../transformer/To-boolean.transformer";
 
 export class ListUsersDto {
     
