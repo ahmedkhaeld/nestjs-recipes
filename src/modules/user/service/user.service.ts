@@ -1,16 +1,18 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { UserRepository } from '../repository/user.repository';
 import { User } from '../schema/user.schema';
 import { Types } from 'mongoose';
 import { CreateUserDto } from '../dto/create-user.dto';
 import * as bcryptjs from 'bcryptjs';
 import { ListUsersDto } from '../dto/list-users.dto';
+import { IServiceResponse } from 'src/common/interfaces/service.response';
 
 @Injectable()
 export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
-  async CreateUser(payload: CreateUserDto): Promise<User> {
+  async CreateUser(payload: CreateUserDto): Promise<IServiceResponse> {
+    const serviceResponse : IServiceResponse = {data: null, error: null}
     // hash the password
     const salt = bcryptjs.genSaltSync(10);
     payload.password = bcryptjs.hashSync(payload.password, salt);
@@ -30,14 +32,30 @@ export class UserService {
         nationality: payload.personalInformation.nationality,
       },
     };
-    return this.userRepository.create(userData);
+    const newUser = await this.userRepository.create(userData);
+
+    serviceResponse.data ={
+      user: newUser,
+    }
+    return serviceResponse
   }
 
   
-  async GetUserById(userId: string): Promise<User> {
+  async GetUserById(userId: string): Promise<IServiceResponse> {
+    try{
+      const response : IServiceResponse = {data: null, error: null};
+      const id = new Types.ObjectId(userId);
+      const userData= await this.userRepository.findOne({_id: id});
+      response.data = {
+        user: userData,
+      }
+      return response;
+    } catch(exception){
+      console.log(exception);
+      throw new InternalServerErrorException(exception);
+    }
     
-    const id = new Types.ObjectId(userId);
-   return this.userRepository.findOne({_id: id})
+   
   }
 
   async GetAllUsers(): Promise<User[]> {
