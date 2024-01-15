@@ -11,6 +11,7 @@ import {
 } from 'mongoose';
 
 import { AggregratePaginateModel, PaginateModel, AggregatePaginateResult, PaginateResult } from 'mongoose-aggregate-paginate-v2'
+import { ExceptionsFeedback } from 'src/common/application-feedback/exceptions.feedback';
 
 @Injectable()
 export class UserRepository {
@@ -26,8 +27,13 @@ export class UserRepository {
    * @returns {Promise<User>} The created user document.
    */
     async create(user: User): Promise<User> {
-      const newUser = new this.userModel(user);
+      try {
+        const newUser = new this.userModel(user);
       return newUser.save();
+      } catch(exception){
+        console.log(exception)
+        throw new InternalServerErrorException(ExceptionsFeedback.UNEXPECTED_ERROR);
+      }
     }
 
   /**

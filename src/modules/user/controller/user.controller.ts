@@ -4,13 +4,16 @@ import { User } from '../schema/user.schema';
 import { CreateUserDto } from '../dto/create-user.dto';
 import { GetUserbyIdDto } from '../dto/get-user.dto';
 import { ListUsersDto } from '../dto/list-users.dto';
+import { SuccessResponse } from 'src/common/responses/http-responses/success.response';
+import { SuccessCreatedResponse } from 'src/common/responses/http-responses/success-created.response';
 @Controller('users')
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
   @Post()
-  async CreateUser(@Body() user: CreateUserDto): Promise<User> {
-    return this.userService.CreateUser(user);
+  async CreateUser(@Body() user: CreateUserDto) {
+    const response= await this.userService.CreateUser(user);
+    return new SuccessCreatedResponse(response.data);
   }
 
   @Get(':userId')
@@ -19,7 +22,7 @@ export class UserController {
     const response = await this.userService.GetUserById(param.userId)
 
 
-    return response
+    return new SuccessResponse(response.data);
   }
 
   @Get()
