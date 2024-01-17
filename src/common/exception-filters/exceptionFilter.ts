@@ -10,11 +10,7 @@ import { HttpAdapterHost } from '@nestjs/core';
 import { InternalServerErrorResponse } from '../responses/http-responses/internal-server-error.response';
 import { HttpArgumentsHost } from '@nestjs/common/interfaces/features/arguments-host.interface';
 import { ExceptionsFeedback } from '../application-feedback/exceptions.feedback';
-import { InvalidParamsResponse } from '../responses/http-responses/invalid-params.response';
-import { BadRequestResponse } from '../responses/http-responses/bad-request.response';
-import { UnAuthorizedResponse } from '../responses/http-responses/un-authorized.response';
-import { ForbiddenResponse } from '../responses/http-responses/forbidden-request.response';
-import { NotFoundResponse } from '../responses/http-responses/not-found.response';
+import { HTTP_RESPONSE_MAP } from '../responses/http-responses/base.response';
 
 @Catch()
 export class AllExceptionsFilter implements ExceptionFilter {
@@ -45,80 +41,16 @@ catch(exception: unknown, host: ArgumentsHost): void {
       ? exception.getStatus()
       : HttpStatus.INTERNAL_SERVER_ERROR;
 
-    let clientResponse = null;
-   switch (httpStatus) {
-    case HttpStatus.BAD_REQUEST:
-      if (exception instanceof HttpException) {
-        clientResponse = new BadRequestResponse(exception.getResponse());
-      } else {
-        clientResponse = new BadRequestResponse();
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-      break;
-    case HttpStatus.UNPROCESSABLE_ENTITY:
-      if (exception instanceof HttpException) {
-        clientResponse = new InvalidParamsResponse(exception.getResponse());
-      } else {
-        clientResponse = new InvalidParamsResponse();
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-      break;
-    case HttpStatus.UNAUTHORIZED:
-      if (exception instanceof HttpException) {
-        clientResponse = new UnAuthorizedResponse(exception.getResponse());
-      } else {
-        clientResponse = new UnAuthorizedResponse();
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-      break;
-    case HttpStatus.FORBIDDEN:
-      if (exception instanceof HttpException) {
-        clientResponse = new ForbiddenResponse(exception.getResponse());
-      } else {
-        clientResponse = new ForbiddenResponse();
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-      break;
-    case HttpStatus.NOT_FOUND:
-      if (exception instanceof HttpException) {
-        clientResponse = new NotFoundResponse(exception.getResponse());
-      } else {
-        clientResponse = new NotFoundResponse();
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-      break;
-    default:
-      if (exception instanceof HttpException) {
-        clientResponse = new InternalServerErrorResponse(exception.getResponse());
-      } else {
-        clientResponse = new InternalServerErrorResponse(ExceptionsFeedback.UNEXPECTED_ERROR);
-      }
-      httpAdapter.reply(
-        ctx.getResponse(),
-        clientResponse.getResponseObject(),
-        httpStatus,
-      );
-  }
+      const ResponseClass = HTTP_RESPONSE_MAP[httpStatus] || InternalServerErrorResponse;
+
+       // Creating an instance of the appropriate response class
+    const myRes = new ResponseClass(exception instanceof HttpException
+      ? exception.getResponse()
+      : ExceptionsFeedback.UNEXPECTED_ERROR);
+  
+    // Sending the response to the client
+    httpAdapter.reply(ctx.getResponse(), myRes.getResponseObject(), httpStatus);
+
 }
 
 
