@@ -8,15 +8,18 @@ import { ValidationErrorsFormat } from './common/pipes/validation-formatter.pipe
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  useContainer(app.select(AppModule), {fallbackOnErrors: true});
+  useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.useGlobalFilters(new AllExceptionsFilter(app.get(HttpAdapterHost)));
-  
-  // binding ValidationPipe at the application level, 
+
+  // binding ValidationPipe at the application level,
   //thus ensuring all endpoints are protected from receiving incorrect data.
   // finaly will return a formatted error message
-  app.useGlobalPipes( new ValidationPipe({
-    exceptionFactory: (errors: ValidationError[]) => ValidationErrorsFormat(errors)
-  }))
+  app.useGlobalPipes(
+    new ValidationPipe({
+      exceptionFactory: (errors: ValidationError[]) =>
+        ValidationErrorsFormat(errors),
+    }),
+  );
 
   await app.listen(ProcessEnv().port);
 }

@@ -12,7 +12,7 @@ export class UserService {
   constructor(private readonly userRepository: UserRepository) {}
 
   async CreateUser(payload: CreateUserDto): Promise<IServiceResponse> {
-    const serviceResponse : IServiceResponse = {data: null, error: null}
+    const serviceResponse: IServiceResponse = { data: null, error: null };
     // hash the password
     const salt = bcryptjs.genSaltSync(10);
     payload.password = bcryptjs.hashSync(payload.password, salt);
@@ -34,32 +34,44 @@ export class UserService {
     };
     const newUser = await this.userRepository.create(userData);
 
-    serviceResponse.data ={
+    serviceResponse.data = {
       user: newUser,
-    }
-    return serviceResponse
+    };
+    return serviceResponse;
   }
 
-  
   async GetUserById(userId: string): Promise<IServiceResponse> {
-    try{
-      const response : IServiceResponse = {data: null, error: null};
+    try {
+      const response: IServiceResponse = { data: null, error: null };
       const id = new Types.ObjectId(userId);
-      const userData= await this.userRepository.findOne({_id: id});
+      const userData = await this.userRepository.findOne({ _id: id });
       response.data = {
         user: userData,
-      }
+      };
       return response;
-    } catch(exception){
+    } catch (exception) {
       console.log(exception);
       throw new InternalServerErrorException(exception);
     }
-    
-   
+  }
+
+  async GetUserByEmail(email: string): Promise<IServiceResponse> {
+    try {
+      const response: IServiceResponse = { data: null, error: null };
+
+      const userData = await this.userRepository.findOne({ email: email });
+      response.data = {
+        user: userData,
+      };
+      return response;
+    } catch (exception) {
+      console.log(exception);
+      throw new InternalServerErrorException(exception);
+    }
   }
 
   async GetAllUsers(): Promise<User[]> {
-    return this.userRepository.find({})
+    return this.userRepository.find({});
   }
 
   async ListUsers(query: ListUsersDto): Promise<any> {
@@ -74,7 +86,5 @@ export class UserService {
     const result = await this.userRepository.ListUsers(_query, _options);
 
     return result;
-
   }
-
 }

@@ -5,7 +5,6 @@ import { Connection } from 'mongoose';
 import { UserController } from './controller/user.controller';
 import { UserService } from './service/user.service';
 import { UserRepository } from './repository/user.repository';
-import { UserAuthService } from './service/user-auth.service';
 import { IsUserIdExistValidator } from './validator/user-id-exists.validator';
 
 @Module({
@@ -22,8 +21,12 @@ import { IsUserIdExistValidator } from './validator/user-id-exists.validator';
       },
     ]),
   ],
-  providers: [UserService, UserAuthService, UserRepository,IsUserIdExistValidator],
+  providers: [
+    UserService,
+    UserRepository,
+    IsUserIdExistValidator,
+  ],
   controllers: [UserController],
-  exports: [UserAuthService],
+  exports: [UserService],
 })
 export class UserModule {}
